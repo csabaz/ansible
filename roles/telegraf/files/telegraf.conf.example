@@ -4454,7 +4454,7 @@
 
 # # Collects conntrack stats from the configured directories and files.
 # # This plugin ONLY supports Linux
-[[inputs.conntrack]]
+# [[inputs.conntrack]]
 #   ## The following defaults would work with multiple versions of conntrack.
 #   ## Note the nf_ and ip_ filename prefixes are mutually exclusive across
 #   ## kernel versions, as are the directory locations.
@@ -6850,7 +6850,7 @@
 
 
 # # Gather metrics about network interfaces
-[[inputs.net]]
+# [[inputs.net]]
 #   ## By default, telegraf gathers stats from any up interface (excluding loopback)
 #   ## Setting interfaces will tell it to gather these explicit interfaces,
 #   ## regardless of status. When specifying an interface, glob-style
