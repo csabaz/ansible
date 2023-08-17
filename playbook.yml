@@ -4,3 +4,8 @@
   become: true
   roles:
     - grafana
+- name: Install Grafana
+  hosts: servers
+  become: true
+  roles:
+    - telegraf

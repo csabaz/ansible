@@ -1,0 +1,6 @@
+---
+# handlers file for roles/telegraf
+- name: Restart telegraf
+  ansible.builtin.systemd:
+    name: 'telegraf'
+    state: restarted

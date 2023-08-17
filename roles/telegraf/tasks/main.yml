@@ -1,0 +1,46 @@
+---
+# tasks file for roles/telegraf
+- name: Install gpg
+  ansible.builtin.apt:
+    name: gnupg,software-properties-common
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install Telegraf key
+  ansible.builtin.get_url:
+    url: https://repos.influxdata.com/influxdata-archive_compat.key
+    dest: /etc/apt/keyrings/telegraf.asc
+    mode: '0644'
+    checksum: sha256:393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c
+
+- name: Add repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/telegraf.asc] https://repos.influxdata.com/debian stable main"
+    state: present
+    update_cache: true
+
+- name: Install Telegraf
+  ansible.builtin.apt:
+    name: telegraf
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Copy config
+  ansible.builtin.copy:
+    src: telegraf.conf
+    dest: /etc/telegraf/telegraf.conf
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+    force: true
+  notify:
+    - Restart telegraf
+
+- name: Start service telegraf
+  ansible.builtin.systemd:
+    name: telegraf
+    state: started
+    enabled: true
