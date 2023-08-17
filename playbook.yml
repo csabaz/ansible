@@ -1,0 +1,6 @@
+---
+- name: Install Grafana
+  hosts: influx
+  become: true
+  roles:
+    - grafana
