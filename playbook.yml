@@ -3,11 +3,11 @@
   hosts: influx
   become: true
   roles:
-    - influxdb
-    - grafana
-    - icinga2_client
+    - {role: 'influxdb', tags: 'influxdb'}
+    - {role: 'grafana', tags: 'grafana'}
+    - {role: 'icinga2_client', tags: 'icinga2_client'}
 - name: Install Telegraf
   hosts: servers
   become: true
   roles:
-    - telegraf
+    - {role: 'telegraf', tags: 'telegraf'}

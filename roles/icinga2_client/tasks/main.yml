@@ -95,19 +95,20 @@
   register: node_setup
   changed_when: false
   ignore_errors: true
-
-- name: Continue with the additional node setup steps
-  ansible.builtin.shell: >
-    icinga2 node setup --ticket {{ client_ticket.stdout }}
-    --endpoint {{ icinga2_server }},{{ icinga2_server_ip }},{{ icinga2_server_port }}
-    --zone {{ ansible_hostname }}
-    --cn {{ ansible_hostname }}
-    --parent_host {{ icinga2_server_host }}
-    --trustedcert '{{ icinga2_pki_path }}/trusted-master.crt'
-    --accept-config
-    --accept-commands
-    {{ '--disable--confd' if icinga2_disable_confd else '' }}
-  when:
-    - node_setup.rc != 0
-    - client_ticket is defined
-  notify: Restart icinga2
+#
+#- name: Continue with the additional node setup steps
+#  ansible.builtin.shell: >
+#    icinga2 node setup --ticket {{ client_ticket.stdout }}
+#    --endpoint {{ icinga2_server }},{{ icinga2_server_ip }},{{ icinga2_server_port }}
+#    --zone {{ ansible_hostname }}
+#    --cn {{ ansible_hostname }}
+#    --parent_host {{ icinga2_server_host }}
+#    --trustedcert '{{ icinga2_pki_path }}/trusted-master.crt'
+#    --accept-config
+#    --accept-commands
+#    {{ '--disable--confd' if icinga2_disable_confd else '' }}
+#  when:
+#    - node_setup.rc != 0
+#    - client_ticket is defined
+#  notify: Restart icinga2
+#
