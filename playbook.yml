@@ -1,10 +1,12 @@
 ---
-- name: Install Grafana
+- name: Install Influxd and Grafana
   hosts: influx
   become: true
   roles:
+    - influxdb
     - grafana
-- name: Install Grafana
+    - icinga2_client
+- name: Install Telegraf
   hosts: servers
   become: true
   roles:

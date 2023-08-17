@@ -1,0 +1,113 @@
+---
+# tasks file for roles/icinga2_client
+- name: Install gpg
+  ansible.builtin.apt:
+    name:
+      - gnupg
+      - software-properties-common
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install Icinga2 key
+  ansible.builtin.get_url:
+    url: https://packages.icinga.com/icinga.key
+    dest: /etc/apt/keyrings/icinga2.asc
+    mode: '0644'
+
+- name: Add repository
+  ansible.builtin.apt_repository:
+    filename: icinga2_bookworm
+    repo: "deb [signed-by=/etc/apt/keyrings/icinga2.asc] https://packages.icinga.com/debian icinga-bookworm main"
+    state: present
+
+- name: Add repository
+  ansible.builtin.apt_repository:
+    filename: icinga2_bookworm_src
+    repo: "deb-src [signed-by=/etc/apt/keyrings/icinga2.asc] https://packages.icinga.com/debian icinga-bookworm main"
+    state: present
+
+- name: Install Icinga2
+  ansible.builtin.apt:
+    name:
+      - icinga2
+      - monitoring-plugins
+      - monitoring-plugins-standard
+      - monitoring-plugins-common
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Start service icinga2
+  ansible.builtin.systemd:
+    name: icinga2
+    state: started
+    enabled: true
+
+- name: Create cert directory if it does not exist
+  ansible.builtin.file:
+    path: /var/lib/icinga2/certs
+    state: directory
+    mode: '0755'
+    owner: nagios
+    group: nagios
+
+- name: Generate a new local self-signed certificate
+  ansible.builtin.shell: >
+    icinga2 pki new-cert --cn {{ ansible_fqdn }}
+    --key '{{ icinga2_pki_path }}/{{ ansible_fqdn }}.key'
+    --cert '{{ icinga2_pki_path }}/{{ ansible_fqdn }}.crt'
+  args:
+    creates: '{{ icinga2_pki_path }}/{{ ansible_fqdn }}.key'
+  notify: Restart icinga2
+
+- name: Request the master certificate from the master host and store it as trusted-master.crt
+  ansible.builtin.shell: >
+    icinga2 pki save-cert --key '{{ icinga2_pki_path }}/{{ ansible_fqdn }}.key'
+    --cert '{{ icinga2_pki_path }}/{{ ansible_fqdn }}.crt'
+    --trustedcert '{{ icinga2_pki_path }}/trusted-master.crt'
+    --host {{ icinga2_server_ip }}
+  args:
+    creates: '{{ icinga2_pki_path }}/trusted-master.crt'
+  notify: Restart icinga2
+
+- name: Generate ticket
+  ansible.builtin.shell: >
+    icinga2 pki ticket --cn {{ ansible_hostname }} --salt {{ icinga2_ticket_salt }}
+  register: client_ticket
+  changed_when: false
+
+- name: Send the self-signed certificate to the master host using the ticket number and receive a CA
+  ansible.builtin.shell: >
+    icinga2 pki request --host {{ icinga2_server_ip }} --port {{ icinga2_server_port }}
+    --ticket {{ client_ticket.stdout }}
+    --key '{{ icinga2_pki_path }}/{{ ansible_fqdn }}.key'
+    --cert '{{ icinga2_pki_path }}/{{ ansible_fqdn }}.crt'
+    --trustedcert '{{ icinga2_pki_path }}/trusted-master.crt'
+    --ca '{{ icinga2_pki_path }}/ca.crt'
+  args:
+    creates: '{{ icinga2_pki_path }}/ca.crt'
+  when: client_ticket is defined
+  notify: Restart icinga2
+
+- name: Check if node setup needs happen
+  ansible.builtin.command: grep {{ ansible_hostname }} /etc/icinga2/constants.conf
+  register: node_setup
+  changed_when: false
+  ignore_errors: true
+
+- name: Continue with the additional node setup steps
+  ansible.builtin.shell: >
+    icinga2 node setup --ticket {{ client_ticket.stdout }}
+    --endpoint {{ icinga2_server }},{{ icinga2_server_ip }},{{ icinga2_server_port }}
+    --zone {{ ansible_hostname }}
+    --cn {{ ansible_hostname }}
+    --parent_host {{ icinga2_server_host }}
+    --trustedcert '{{ icinga2_pki_path }}/trusted-master.crt'
+    --accept-config
+    --accept-commands
+    {{ '--disable--confd' if icinga2_disable_confd else '' }}
+  when:
+    - node_setup.rc != 0
+    - client_ticket is defined
+  notify: Restart icinga2

@@ -1,0 +1,6 @@
+---
+# handlers file for roles/icinga2_client
+- name: Restart icinga2
+  ansible.builtin.systemd:
+    name: 'icinga2'
+    state: restarted

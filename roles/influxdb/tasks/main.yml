@@ -1,13 +1,15 @@
 ---
-# tasks file for roles/telegraf
+# tasks file for roles/influxdb
 - name: Install gpg
   ansible.builtin.apt:
-    name: gnupg,software-properties-common
+    name:
+      - gnupg
+      - software-properties-common
     state: present
     update_cache: true
     cache_valid_time: 3600
 
-- name: Install Telegraf key
+- name: Install Influxdb key
   ansible.builtin.get_url:
     url: https://repos.influxdata.com/influxdata-archive_compat.key
     dest: /etc/apt/keyrings/influxdata.asc
@@ -20,27 +22,16 @@
     repo: "deb [signed-by=/etc/apt/keyrings/influxdata.asc] https://repos.influxdata.com/debian stable main"
     state: present
 
-- name: Install Telegraf
+- name: Install Influxdb
   ansible.builtin.apt:
-    name: telegraf
+    name:
+      - influxdb2
     state: present
     update_cache: true
     cache_valid_time: 3600
 
-- name: Copy config
-  ansible.builtin.copy:
-    src: telegraf.conf
-    dest: /etc/telegraf/telegraf.conf
-    owner: root
-    group: root
-    mode: '0644'
-    backup: true
-    force: true
-  notify:
-    - Restart telegraf
-
-- name: Start service telegraf
+- name: Start service influxdb
   ansible.builtin.systemd:
-    name: telegraf
+    name: influxdb
     state: started
     enabled: true
