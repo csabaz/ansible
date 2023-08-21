@@ -2,11 +2,11 @@ all:
   children:
     servers:
       hosts:
-        influx:
-          ansible_host: 10.100.100.205
+        rpi:
+          ansible_host: 10.100.100.3
           ansible_port: 22
-          ansible_user: kadmin
+          ansible_user: dietpi
         icinga:
-          ansible_host: 10.100.100.204
+          ansible_host: 10.100.100.2
           ansible_port: 22
-          ansible_user: kadmin
+          ansible_user: csabaz

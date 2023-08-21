@@ -1,6 +1,6 @@
 ---
 - name: Install Influxd and Grafana
-  hosts: influx
+  hosts: rpi
   become: true
   roles:
     - {role: 'influxdb', tags: 'influxdb'}
@@ -11,3 +11,4 @@
   become: true
   roles:
     - {role: 'telegraf', tags: 'telegraf'}
+    - {role: 'general', tags: 'general'}
