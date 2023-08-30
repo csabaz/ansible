@@ -7,17 +7,17 @@
     update_cache: true
     cache_valid_time: 3600
 
-- name: Install Telegraf key
+- name: Download Telegraf key
   ansible.builtin.get_url:
     url: https://repos.influxdata.com/influxdata-archive_compat.key
-    dest: /etc/apt/keyrings/influxdata.asc
+    dest: /etc/apt/trusted.gpg.d/influxdata-archive_compat.asc
     mode: '0644'
     checksum: sha256:393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c
 
 - name: Add repository
   ansible.builtin.apt_repository:
     filename: influxdata
-    repo: "deb [signed-by=/etc/apt/keyrings/influxdata.asc] https://repos.influxdata.com/debian stable main"
+    repo: "deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.asc] https://repos.influxdata.com/debian stable main"
     state: present
 
 - name: Install Telegraf
@@ -26,6 +26,12 @@
     state: present
     update_cache: true
     cache_valid_time: 3600
+
+- name: Add telegraf user to video group
+  ansible.builtin.user:
+    name: telegraf
+    groups: video
+    append: true
 
 - name: Copy config
   ansible.builtin.copy:

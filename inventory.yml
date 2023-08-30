@@ -3,10 +3,10 @@ all:
     servers:
       hosts:
         rpi:
-          ansible_host: 10.100.100.3
+          ansible_host: 10.100.100.15
           ansible_port: 22
-          ansible_user: dietpi
-        icinga:
+          ansible_user: root
+        rock-5b:
           ansible_host: 10.100.100.2
           ansible_port: 22
           ansible_user: csabaz
